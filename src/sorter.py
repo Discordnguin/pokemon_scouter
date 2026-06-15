@@ -4,6 +4,57 @@ from src.models import Pokemon, Team
 
 SlotCondition = Callable[[Pokemon], bool]
 
+# Attacking type effectiveness against a defending mon.
+GROUND_EFFECTIVENESS = {
+    'Normal': 1,
+    'Fire': 1,
+    'Water': 1,
+    'Electric': 1,
+    'Grass': 0.5,
+    'Ice': 2,
+    'Fighting': 1,
+    'Poison': 1,
+    'Ground': 1,
+    'Flying': 0,
+    'Psychic': 1,
+    'Bug': 1,
+    'Rock': 2,
+    'Ghost': 1,
+    'Dragon': 1,
+    'Dark': 1,
+    'Steel': 0.5,
+    'Fairy': 1,
+}
+
+WATER_EFFECTIVENESS = {
+    'Normal': 1,
+    'Fire': 0.5,
+    'Water': 0.5,
+    'Electric': 2,
+    'Grass': 2,
+    'Ice': 0.5,
+    'Fighting': 1,
+    'Poison': 1,
+    'Ground': 1,
+    'Flying': 1,
+    'Psychic': 1,
+    'Bug': 1,
+    'Rock': 1,
+    'Ghost': 1,
+    'Dragon': 0.5,
+    'Dark': 1,
+    'Steel': 0.5,
+    'Fairy': 1,
+}
+
+STEEL_PRIORITY = [
+    'Magearna',
+    'Jirachi',
+    'Heatran',
+    'Ferrothorn',
+    'Celesteela',
+]
+
 class TeamSorter:
     def __init__(self, team: Team, slot_conditions: Optional[List[SlotCondition]] = None):
         self.team = team
@@ -24,12 +75,86 @@ class TeamSorter:
 
     def default_slot_conditions(self) -> List[SlotCondition]:
         return [
-            lambda mon: mon.is_mega,
-            lambda mon: mon.has_type('Ground'),
-            lambda mon: mon.has_type('Steel'),
-            lambda mon: mon.has_type('Water') or mon.has_type('Grass') or mon.has_type('Dragon'),
-            lambda mon: mon.has_type('Flying') or mon.has_type('Bug') or mon.has_type('Grass'),
+            self._pick_mega,
+            self._pick_primary_ground,
+            self._pick_steel_slot,
+            self._pick_water_resist,
+            self._pick_ground_resist_slot,
+            self._pick_other_steel,
+            self._pick_flying_or_bug,
         ]
+
+    def _pick_mega(self, mon: Pokemon) -> bool:
+        return mon.is_mega
+
+    def _pick_primary_ground(self, mon: Pokemon) -> bool:
+        # Prefer Landorus-Therian first, then Thundurus-Therian, then any Grass type.
+        if mon.species.lower() == 'landorus-therian':
+            return True
+        if any(m.species.lower() == 'landorus-therian' for m in self.unassigned):
+            return False
+        if mon.species.lower() == 'thundurus-therian':
+            return True
+        if any(m.species.lower() == 'thundurus-therian' for m in self.unassigned):
+            return False
+        return mon.has_type('Grass')
+
+    def _pick_steel_slot(self, mon: Pokemon) -> bool:
+        # Steel slot should prefer Magearna/Jirachi/Heatran/Ferrothorn/Celesteela first,
+        # otherwise choose Kartana only if no other steel remains.
+        if not mon.has_type('Steel'):
+            return False
+        if mon.species in STEEL_PRIORITY:
+            return True
+        if mon.species == 'Kartana':
+            remaining_steel = [m for m in self.unassigned if m.has_type('Steel') and m.species != 'Kartana']
+            return not any(remaining_steel)
+        return True
+
+    def _pick_water_resist(self, mon: Pokemon) -> bool:
+        # Prefer actual Water types; if none exist, choose any water resist.
+        if any(m.has_type('Water') for m in self.unassigned):
+            return mon.has_type('Water')
+        return self._is_water_resist(mon)
+
+    def _pick_ground_resist_slot(self, mon: Pokemon) -> bool:
+        if any(self._is_ground_resist(m) for m in self.unassigned):
+            return self._is_ground_resist(mon)
+        if all(self._is_ground_weak(m) for m in self.unassigned):
+            return mon is self._best_ground_choice()
+        return not self._is_ground_weak(mon)
+
+    def _pick_other_steel(self, mon: Pokemon) -> bool:
+        # Place remaining non-Kartana steel types after the water slot.
+        if not mon.has_type('Steel'):
+            return False
+        if mon.species == 'Kartana':
+            return False
+        return True
+
+    def _pick_flying_or_bug(self, mon: Pokemon) -> bool:
+        return mon.has_type('Flying') or mon.has_type('Bug') or mon.has_type('Grass')
+
+    def _type_effectiveness(self, mon: Pokemon, effectiveness: dict[str, float]) -> float:
+        score = 1.0
+        for typ in mon.types:
+            score *= effectiveness.get(typ, 1)
+        return score
+
+    def _is_water_resist(self, mon: Pokemon) -> bool:
+        return self._type_effectiveness(mon, WATER_EFFECTIVENESS) < 1
+
+    def _is_ground_resist(self, mon: Pokemon) -> bool:
+        return self._type_effectiveness(mon, GROUND_EFFECTIVENESS) < 1
+
+    def _is_ground_weak(self, mon: Pokemon) -> bool:
+        return self._type_effectiveness(mon, GROUND_EFFECTIVENESS) > 1
+
+    def _best_ground_choice(self) -> Optional[Pokemon]:
+        resistors = [m for m in self.unassigned if not self._is_ground_weak(m)]
+        if resistors:
+            return min(resistors, key=lambda m: (self._type_effectiveness(m, GROUND_EFFECTIVENESS), 'Ice' not in m.types))
+        return min(self.unassigned, key=lambda m: ('Ice' not in m.types, self._type_effectiveness(m, GROUND_EFFECTIVENESS)))
 
     def _apply_custom_overrides(self) -> None:
         if any(mon.species == 'Swampert' for mon in self.unassigned) and any(mon.species == 'Pelipper' for mon in self.unassigned):
