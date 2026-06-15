@@ -95,7 +95,7 @@ class ShowdownParser:
                     # Prefer a recorded mega variant name when available (e.g. Charizard-Mega-Y)
                     variant_name = megas_variant_map.get(p_id, {}).get(species)
                     final_species = variant_name if variant_name else species
-                    types = self.dex_config.get(species, {}).get('types', [])
+                    types = self._lookup_types(final_species)
                     roster.append(Pokemon(final_species, types, is_mega))
 
                 # The opponent is the other player slot for this match.
@@ -117,3 +117,19 @@ class ShowdownParser:
                 )
 
         return scouts
+
+    def _lookup_types(self, species: str) -> List[str]:
+        if species in self.dex_config:
+            return self.dex_config[species].get('types', [])
+
+        if '*' in species:
+            base = species.split('*')[0].rstrip('-')
+            if base in self.dex_config:
+                return self.dex_config[base].get('types', [])
+
+        if '-' in species:
+            base = species.split('-', 1)[0]
+            if base in self.dex_config:
+                return self.dex_config[base].get('types', [])
+
+        return []

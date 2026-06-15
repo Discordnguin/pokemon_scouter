@@ -7,39 +7,61 @@ SlotCondition = Callable[[Pokemon], bool]
 # Attacking type effectiveness against a defending mon.
 GROUND_EFFECTIVENESS = {
     'Normal': 1,
-    'Fire': 1,
+    'Fire': 2,
     'Water': 1,
-    'Electric': 1,
+    'Electric': 0,
     'Grass': 0.5,
-    'Ice': 2,
+    'Ice': 1,
     'Fighting': 1,
     'Poison': 1,
     'Ground': 1,
     'Flying': 0,
     'Psychic': 1,
-    'Bug': 1,
+    'Bug': 0.5,
     'Rock': 2,
     'Ghost': 1,
     'Dragon': 1,
     'Dark': 1,
-    'Steel': 0.5,
+    'Steel': 2,
+    'Fairy': 1,
+}
+
+# type effectiveness attacking against a ground type
+GROUND_OFFENSE_VS_GROUND = {
+    'Normal': 1,
+    'Fire': 1,
+    'Water': 2,
+    'Electric': 0,
+    'Grass': 2,
+    'Ice': 2,
+    'Fighting': 1,
+    'Poison': 0.5,
+    'Ground': 1,
+    'Flying': 1,
+    'Psychic': 1,
+    'Bug': 0.5,
+    'Rock': 1,
+    'Ghost': 1,
+    'Dragon': 1,
+    'Dark': 1,
+    'Steel': 1,
     'Fairy': 1,
 }
 
 WATER_EFFECTIVENESS = {
     'Normal': 1,
-    'Fire': 0.5,
+    'Fire': 2,
     'Water': 0.5,
-    'Electric': 2,
-    'Grass': 2,
-    'Ice': 0.5,
+    'Electric': 1,
+    'Grass': 0.5,
+    'Ice': 1,
     'Fighting': 1,
     'Poison': 1,
-    'Ground': 1,
+    'Ground': 2,
     'Flying': 1,
     'Psychic': 1,
     'Bug': 1,
-    'Rock': 1,
+    'Rock': 2,
     'Ghost': 1,
     'Dragon': 0.5,
     'Dark': 1,
@@ -112,17 +134,13 @@ class TeamSorter:
         return True
 
     def _pick_water_resist(self, mon: Pokemon) -> bool:
-        # Prefer actual Water types; if none exist, choose any water resist.
-        if any(m.has_type('Water') for m in self.unassigned):
-            return mon.has_type('Water')
-        return self._is_water_resist(mon)
+        # Prefer actual Water types first; otherwise choose the best water resist.
+        best = self._best_water_resist_candidate()
+        return best is not None and mon is best
 
     def _pick_ground_resist_slot(self, mon: Pokemon) -> bool:
-        if any(self._is_ground_resist(m) for m in self.unassigned):
-            return self._is_ground_resist(mon)
-        if all(self._is_ground_weak(m) for m in self.unassigned):
-            return mon is self._best_ground_choice()
-        return not self._is_ground_weak(mon)
+        best = self._best_ground_resist_candidate()
+        return best is not None and mon is best
 
     def _pick_other_steel(self, mon: Pokemon) -> bool:
         # Place remaining non-Kartana steel types after the water slot.
@@ -131,6 +149,38 @@ class TeamSorter:
         if mon.species == 'Kartana':
             return False
         return True
+
+    def _best_water_resist_candidate(self) -> Optional[Pokemon]:
+        water_types = [m for m in self.unassigned if m.has_type('Water')]
+        if water_types:
+            return water_types[0]
+        water_resists = [m for m in self.unassigned if self._is_water_resist(m)]
+        if not water_resists:
+            return None
+        return min(water_resists, key=lambda m: self._type_effectiveness(m, WATER_EFFECTIVENESS))
+
+    def _offense_vs_ground(self, mon: Pokemon) -> float:
+        score = 1.0
+        for typ in mon.types:
+            score *= GROUND_OFFENSE_VS_GROUND.get(typ, 1)
+        return score
+
+    def _best_ground_resist_candidate(self) -> Optional[Pokemon]:
+        if not self.unassigned:
+            return None
+
+        def rank(mon: Pokemon) -> tuple[int, float, float]:
+            defense = self._type_effectiveness(mon, GROUND_EFFECTIVENESS)
+            offense = self._offense_vs_ground(mon)
+            if defense < 1:
+                category = 0
+            elif defense == 1:
+                category = 1
+            else:
+                category = 2
+            return (category, -offense, defense)
+
+        return min(self.unassigned, key=rank)
 
     def _pick_flying_or_bug(self, mon: Pokemon) -> bool:
         return mon.has_type('Flying') or mon.has_type('Bug') or mon.has_type('Grass')
