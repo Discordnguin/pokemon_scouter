@@ -1,0 +1,8 @@
+{
+  "Aerodactyl": { "types": ["Rock", "Flying"] },
+  "Landorus-Therian": { "types": ["Ground", "Flying"] },
+  "Magearna": { "types": ["Steel", "Fairy"] },
+  "Tapu Fini": { "types": ["Water", "Fairy"] },
+  "Tapu Lele": { "types": ["Psychic", "Fairy"] },
+  "Ferrothorn": { "types": ["Grass", "Steel"] }
+}
