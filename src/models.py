@@ -10,7 +10,11 @@ class Pokemon:
     @property
     def export_name(self) -> str:
         # Formats the name for the importable output
-        if self.is_mega and not self.species.endswith("-Mega"):
+        if self.is_mega:
+            # If the species string already indicates the Mega variant (e.g. "Charizard-Mega-X"),
+            # return it verbatim. Otherwise append the generic "-Mega" suffix.
+            if "Mega" in self.species:
+                return self.species
             return f"{self.species}-Mega"
         return self.species
 
@@ -21,3 +25,12 @@ class Pokemon:
 class Team:
     player: str
     roster: List[Pokemon]
+
+@dataclass
+class MatchScout:
+    player: str
+    opponent: str
+    tour: str
+    result: str
+    z_move_user: str
+    team: Team
