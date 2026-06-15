@@ -1,0 +1,4 @@
+scouts_output.txt
+*/__pycache__/
+*.pyc
+*.pyo
