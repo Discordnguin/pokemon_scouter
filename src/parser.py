@@ -21,8 +21,11 @@ class ShowdownParser:
         megas_variant_map: Dict[str, Dict[str, str]] = {'p1': {}, 'p2': {}}
         z_move_users: Dict[str, List[str]] = {'p1': [], 'p2': []}
         win_player: Optional[str] = None
+        
+        # Track Greninja behavior: {p_id: {'used_move': bool, 'showed_protean': bool}}
+        greninja_behavior: Dict[str, Dict[str, bool]] = {'p1': {'used_move': False, 'showed_protean': False}, 'p2': {'used_move': False, 'showed_protean': False}}
 
-        for line in log_lines:
+        for i, line in enumerate(log_lines):
             parts = line.split('|')
             if len(parts) < 2:
                 continue
@@ -61,16 +64,29 @@ class ShowdownParser:
                 # detailschange lines often contain the Mega form name, e.g.
                 # |detailschange|p2a: Charizard|Charizard-Mega-Y, M
                 slot = parts[2].split(':', 1)[0]
-                if slot.startswith('p1'):
-                    slot = 'p1'
-                elif slot.startswith('p2'):
-                    slot = 'p2'
+                slot_player = 'p1' if slot.startswith('p1') else 'p2'
                 base_species = parts[2].split(':', 1)[1].strip() if ':' in parts[2] else ''
                 variant = parts[3].split(',')[0].strip()
+                
+                # Track if Greninja showed a type change (Protean activation)
+                if base_species and base_species.startswith('Greninja'):
+                    if greninja_behavior[slot_player]['used_move']:
+                        greninja_behavior[slot_player]['showed_protean'] = True
+                
                 if base_species and variant and variant != base_species:
-                    existing_variant = megas_variant_map.setdefault(slot, {}).get(base_species)
+                    existing_variant = megas_variant_map.setdefault(slot_player, {}).get(base_species)
                     if not existing_variant or existing_variant == base_species:
-                        megas_variant_map[slot][base_species] = variant
+                        megas_variant_map[slot_player][base_species] = variant
+
+            elif parts[1] == 'move' and len(parts) > 3:
+                # |move|p1a: Greninja|Water Shuriken|...
+                # Track if Greninja used a move
+                slot = parts[2].split(':', 1)[0]
+                slot_player = 'p1' if slot.startswith('p1') else 'p2'
+                mon_species = parts[2].split(':', 1)[1].strip() if ':' in parts[2] else ''
+                
+                if mon_species.startswith('Greninja'):
+                    greninja_behavior[slot_player]['used_move'] = True
 
             elif parts[1] == '-zpower' and len(parts) > 2:
                 p_id = parts[2].split(':')[0]
@@ -85,6 +101,7 @@ class ShowdownParser:
             elif parts[1] == 'win' and len(parts) > 2:
                 win_player = parts[2].lower()
 
+
         # (debug print removed)
 
         # Build MatchScout objects only for players that match the requested targets
@@ -94,6 +111,11 @@ class ShowdownParser:
                 roster: List[Pokemon] = []
                 for species in teams_raw.get(p_id, []):
                     is_mega = species in megas.get(p_id, set())
+                    
+                    # Check if Greninja should be Greninja-Ash
+                    if species == 'Greninja' and greninja_behavior[p_id]['used_move'] and not greninja_behavior[p_id]['showed_protean']:
+                        species = 'Greninja-Ash'
+                    
                     # Prefer a recorded mega variant name when available (e.g. Charizard-Mega-Y).
                     variant_name = megas_variant_map.get(p_id, {}).get(species)
                     if not variant_name and '-' in species:
