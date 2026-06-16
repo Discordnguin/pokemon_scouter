@@ -79,6 +79,39 @@ def best_ground_resist_candidate(unassigned: List[Pokemon]) -> Optional[Pokemon]
 
     return min(unassigned, key=rank)
 
+def is_ground_immune(mon: Pokemon) -> bool:
+    return has_levitate(mon) or get_type_effectiveness(mon, GROUND_EFFECTIVENESS) == 0
+
+def pick_water_slot_candidate(unassigned: List[Pokemon], is_gen8: bool = False) -> Optional[Pokemon]:
+    if not unassigned:
+        return None
+
+    def rank(mon: Pokemon):
+        # 1. True Water types get ultimate priority
+        is_water = 0 if mon.has_type('Water') else 1
+        
+        # 2. Effectiveness Categories (0 = Resist, 1 = Neutral, 2 = Weak)
+        eff = get_type_effectiveness(mon, WATER_EFFECTIVENESS)
+        if eff < 1:
+            eff_category = 0
+        elif eff == 1:
+            eff_category = 1
+        else:
+            eff_category = 2
+
+        # 3. Special Overrides
+        is_pult = 0 if is_gen8 and mon.species == 'Dragapult' else 1
+        is_chansey = 0 if mon.species == 'Chansey' else 1
+        
+        # 4. Tiebreaker: Penalize Ground immunes so they are saved for Slot 5
+        ground_immune_penalty = 1 if is_ground_immune(mon) else 0
+
+        # Tuple priority evaluates left-to-right. 
+        # By placing `ground_immune_penalty` at the end, it safely tiebreaks
+        # within the same category (e.g., choosing a 0.5x non-immune over a 0.5x immune).
+        return (is_water, eff_category, is_pult, is_chansey, ground_immune_penalty, eff)
+
+    return min(unassigned, key=rank)
 
 # --- Strategy Interface ---
 
@@ -97,96 +130,6 @@ class SortingStrategy(ABC):
     def get_slot_conditions(self, sorter: "TeamSorter") -> List[SlotCondition]:
         """Return the ordered list of conditions to evaluate."""
         pass
-
-
-# --- Gen 6 OU Strategy ---
-
-class Gen6Strategy(SortingStrategy):
-    @property
-    def allows_megas(self) -> bool:
-        return True
-
-    def apply_custom_overrides(self, sorter: "TeamSorter") -> None:
-        # Match by base species (ignore form suffixes) so "Swampert-Mega" still pairs with Pelipper
-        def has_base(spec: str) -> bool:
-            return any(m.species.split('-', 1)[0] == spec for m in sorter.unassigned)
-
-        if has_base('Swampert') and has_base('Pelipper'):
-            pelipper = sorter._extract_by_condition(lambda mon: mon.species.split('-', 1)[0] == 'Pelipper')
-            swampert = sorter._extract_by_condition(lambda mon: mon.species.split('-', 1)[0] == 'Swampert')
-            if pelipper: sorter.ordered_roster.append(pelipper)
-            if swampert: sorter.ordered_roster.append(swampert)
-
-    def get_slot_conditions(self, sorter: "TeamSorter") -> List[SlotCondition]:
-        return [
-            lambda m: m.is_mega,
-            lambda m: self._pick_primary_ground(sorter.unassigned, m),
-            lambda m: self._pick_steel_slot(sorter.unassigned, m),
-            lambda m: self._pick_water_resist(sorter.unassigned, m),
-            lambda m: self._pick_water_fallback(sorter.unassigned, m),
-            lambda m: self._pick_ground_resist_slot(sorter.unassigned, m),
-            lambda m: self._pick_other_steel(sorter.unassigned, m),
-            lambda m: m.has_type('Flying') or m.has_type('Bug') or m.has_type('Grass'),
-        ]
-
-    def _pick_primary_ground(self, unassigned: List[Pokemon], mon: Pokemon) -> bool:
-        grounds = [m for m in unassigned if m.has_type('Ground')]
-        best = None
-        if grounds:
-            best = next((m for m in grounds if m.species == 'Landorus-Therian'), grounds[0])
-        elif any(m.species == 'Thundurus-Therian' for m in unassigned):
-            best = next(m for m in unassigned if m.species == 'Thundurus-Therian')
-        else:
-            grasses = [m for m in unassigned if m.has_type('Grass')]
-            best = grasses[0] if grasses else None
-            
-        return best is not None and mon is best
-
-    def _pick_steel_slot(self, unassigned: List[Pokemon], mon: Pokemon) -> bool:
-        steels = [m for m in unassigned if m.has_type('Steel')]
-        if not steels:
-            return False
-
-        # Prefer the highest-priority steel species present
-        for priority_name in STEEL_PRIORITY:
-            candidate = next((m for m in steels if m.species == priority_name), None)
-            if candidate:
-                return mon is candidate
-
-        # Deprioritize Kartana: prefer any other steel if available
-        non_kartana = [m for m in steels if m.species != 'Kartana']
-        if non_kartana:
-            return mon is non_kartana[0]
-
-        # Only Kartana remains
-        return mon is steels[0]
-
-    def _pick_water_resist(self, unassigned: List[Pokemon], mon: Pokemon) -> bool:
-        water_types = [m for m in unassigned if m.has_type('Water')]
-        if water_types:
-            best = water_types[0]
-        else:
-            water_resists = [m for m in unassigned if is_water_resist(m)]
-            if water_resists:
-                best = min(water_resists, key=lambda m: get_type_effectiveness(m, WATER_EFFECTIVENESS))
-            else:
-                best = next((m for m in unassigned if m.species == 'Chansey'), None)
-        return best is not None and mon is best
-
-    def _pick_ground_resist_slot(self, unassigned: List[Pokemon], mon: Pokemon) -> bool:
-        best = best_ground_resist_candidate(unassigned)
-        return best is not None and mon is best
-
-    def _pick_water_fallback(self, unassigned: List[Pokemon], mon: Pokemon) -> bool:
-        if any(m.has_type('Water') or is_water_resist(m) for m in unassigned):
-            return False
-        return mon.species == 'Chansey'
-
-    def _pick_other_steel(self, unassigned: List[Pokemon], mon: Pokemon) -> bool:
-        if not mon.has_type('Steel') or mon.species == 'Kartana':
-            return False
-        return True
-
 
 # --- Gen 7 OU Strategy ---
 
@@ -214,7 +157,6 @@ class Gen7Strategy(SortingStrategy):
             lambda m: self._pick_primary_ground(sorter.unassigned, m),
             lambda m: self._pick_steel_slot(sorter.unassigned, m),
             lambda m: self._pick_water_resist(sorter.unassigned, m),
-            lambda m: self._pick_water_fallback(sorter.unassigned, m),
             lambda m: self._pick_ground_resist_slot(sorter.unassigned, m),
             lambda m: self._pick_other_steel(sorter.unassigned, m),
             lambda m: m.has_type('Flying') or m.has_type('Bug') or m.has_type('Grass'),
@@ -253,25 +195,20 @@ class Gen7Strategy(SortingStrategy):
         return mon is steels[0]
 
     def _pick_water_resist(self, unassigned: List[Pokemon], mon: Pokemon) -> bool:
-        water_types = [m for m in unassigned if m.has_type('Water')]
-        if water_types:
-            best = water_types[0]
-        else:
-            water_resists = [m for m in unassigned if is_water_resist(m)]
-            if water_resists:
-                best = min(water_resists, key=lambda m: get_type_effectiveness(m, WATER_EFFECTIVENESS))
-            else:
-                best = next((m for m in unassigned if m.species == 'Chansey'), None)
+        best = pick_water_slot_candidate(unassigned, is_gen8=False)
         return best is not None and mon is best
 
     def _pick_ground_resist_slot(self, unassigned: List[Pokemon], mon: Pokemon) -> bool:
+        # 1. First, check if there are any actual resists remaining
+        any_resists = any(is_ground_resist(m) for m in unassigned)
+        
+        # 2. If no resists exist, don't force a weak mon into this slot
+        if not any_resists:
+            return False
+            
+        # 3. Otherwise, pick the best one
         best = best_ground_resist_candidate(unassigned)
         return best is not None and mon is best
-
-    def _pick_water_fallback(self, unassigned: List[Pokemon], mon: Pokemon) -> bool:
-        if any(m.has_type('Water') or is_water_resist(m) for m in unassigned):
-            return False
-        return mon.species == 'Chansey'
 
     def _pick_other_steel(self, unassigned: List[Pokemon], mon: Pokemon) -> bool:
         if not mon.has_type('Steel') or mon.species == 'Kartana':

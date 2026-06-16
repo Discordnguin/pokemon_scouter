@@ -1,6 +1,6 @@
 from config.gen7ou_dex import GEN7_OU_DEX
 from src.parser import ShowdownParser
-from src.sorter import TeamSorter, Gen6Strategy, Gen7Strategy, Gen8Strategy
+from src.sorter import TeamSorter, Gen7Strategy, Gen8Strategy
 from web.models import ScoutRequest
 
 class ScoutController:
@@ -29,9 +29,7 @@ class ScoutController:
         
         # Select strategy based on tier
         tier_lower = request.tier.lower()
-        if tier_lower == 'gen6ou':
-            strategy = Gen6Strategy()
-        elif tier_lower == 'gen7ou':
+        if tier_lower in ['gen6ou', 'gen7ou']:
             strategy = Gen7Strategy()
         else:
             strategy = Gen8Strategy()
