@@ -101,6 +101,7 @@ class TeamSorter:
             self._pick_primary_ground,
             self._pick_steel_slot,
             self._pick_water_resist,
+            self._pick_water_fallback,
             self._pick_ground_resist_slot,
             self._pick_other_steel,
             self._pick_flying_or_bug,
@@ -110,16 +111,22 @@ class TeamSorter:
         return mon.is_mega
 
     def _pick_primary_ground(self, mon: Pokemon) -> bool:
-        # Prefer Landorus-Therian first, then Thundurus-Therian, then any Grass type.
-        if mon.species.lower() == 'landorus-therian':
-            return True
-        if any(m.species.lower() == 'landorus-therian' for m in self.unassigned):
-            return False
-        if mon.species.lower() == 'thundurus-therian':
-            return True
-        if any(m.species.lower() == 'thundurus-therian' for m in self.unassigned):
-            return False
-        return mon.has_type('Grass')
+        best = self._best_primary_ground_candidate()
+        return best is not None and mon is best
+
+    def _best_primary_ground_candidate(self) -> Optional[Pokemon]:
+        grounds = [m for m in self.unassigned if m.has_type('Ground')]
+        if grounds:
+            for mon in grounds:
+                if mon.species == 'Landorus-Therian':
+                    return mon
+            return grounds[0]
+
+        if any(mon.species == 'Thundurus-Therian' for mon in self.unassigned):
+            return next(mon for mon in self.unassigned if mon.species == 'Thundurus-Therian')
+
+        grasses = [m for m in self.unassigned if m.has_type('Grass')]
+        return grasses[0] if grasses else None
 
     def _pick_steel_slot(self, mon: Pokemon) -> bool:
         # Steel slot should prefer Magearna/Jirachi/Heatran/Ferrothorn/Celesteela first,
@@ -142,6 +149,12 @@ class TeamSorter:
         best = self._best_ground_resist_candidate()
         return best is not None and mon is best
 
+    def _pick_water_fallback(self, mon: Pokemon) -> bool:
+        # If no real water resist or Water type exists, use Chansey as a soft fallback.
+        if any(m.has_type('Water') or self._is_water_resist(m) for m in self.unassigned):
+            return False
+        return mon.species == 'Chansey'
+
     def _pick_other_steel(self, mon: Pokemon) -> bool:
         # Place remaining non-Kartana steel types after the water slot.
         if not mon.has_type('Steel'):
@@ -155,9 +168,10 @@ class TeamSorter:
         if water_types:
             return water_types[0]
         water_resists = [m for m in self.unassigned if self._is_water_resist(m)]
-        if not water_resists:
-            return None
-        return min(water_resists, key=lambda m: self._type_effectiveness(m, WATER_EFFECTIVENESS))
+        if water_resists:
+            return min(water_resists, key=lambda m: self._type_effectiveness(m, WATER_EFFECTIVENESS))
+        chansey = next((m for m in self.unassigned if m.species == 'Chansey'), None)
+        return chansey
 
     def _offense_vs_ground(self, mon: Pokemon) -> float:
         score = 1.0

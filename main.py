@@ -1,6 +1,10 @@
+import sys
 from config.gen7ou_dex import GEN7_OU_DEX
 from src.parser import ShowdownParser
 from src.sorter import TeamSorter
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 INPUT_FILE = "input.txt"
 OUTPUT_FILE = "scouts_output.txt"
@@ -19,14 +23,15 @@ def parse_input_file(path: str) -> tuple[list[str], str, dict[str, list[str]]]:
     replays_by_tour: dict[str, list[str]] = {}
     current_tour: str | None = None
     for line in lines[2:]:
-        if not line.strip():
-            current_tour = None
+        clean = line.strip()
+        if clean.lower().startswith("http://") or clean.lower().startswith("https://"):
+            if current_tour is None:
+                raise ValueError("Replay URL found before a tour name in input.txt.")
+            replays_by_tour[current_tour].append(clean)
             continue
-        if current_tour is None:
-            current_tour = line.strip()
-            replays_by_tour[current_tour] = []
-            continue
-        replays_by_tour[current_tour].append(line.strip())
+
+        current_tour = clean
+        replays_by_tour[current_tour] = []
 
     return targets, tier, replays_by_tour
 
@@ -52,12 +57,13 @@ def main():
         ordered_team = sorter.sort_scout()
         for mon in ordered_team:
             output_lines.append(mon)
-        output_lines.append("")
+            output_lines.append("")
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write("\n".join(output_lines).rstrip() + "\n")
 
-    print(open(OUTPUT_FILE, encoding="utf-8").read())
+    with open(OUTPUT_FILE, encoding="utf-8") as f:
+        sys.stdout.write(f.read())
 
 if __name__ == "__main__":
     main()

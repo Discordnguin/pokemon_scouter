@@ -67,8 +67,10 @@ class ShowdownParser:
                     slot = 'p2'
                 base_species = parts[2].split(':', 1)[1].strip() if ':' in parts[2] else ''
                 variant = parts[3].split(',')[0].strip()
-                if base_species and variant:
-                    megas_variant_map.setdefault(slot, {})[base_species] = variant
+                if base_species and variant and variant != base_species:
+                    existing_variant = megas_variant_map.setdefault(slot, {}).get(base_species)
+                    if not existing_variant or existing_variant == base_species:
+                        megas_variant_map[slot][base_species] = variant
 
             elif parts[1] == '-zpower' and len(parts) > 2:
                 p_id = parts[2].split(':')[0]
@@ -92,11 +94,19 @@ class ShowdownParser:
                 roster: List[Pokemon] = []
                 for species in teams_raw.get(p_id, []):
                     is_mega = species in megas.get(p_id, set())
-                    # Prefer a recorded mega variant name when available (e.g. Charizard-Mega-Y)
+                    # Prefer a recorded mega variant name when available (e.g. Charizard-Mega-Y).
                     variant_name = megas_variant_map.get(p_id, {}).get(species)
+                    if not variant_name and '-' in species:
+                        base_species = species.split('-', 1)[0]
+                        variant_name = megas_variant_map.get(p_id, {}).get(base_species)
                     final_species = variant_name if variant_name else species
+                    if not is_mega and 'Mega' in final_species:
+                        is_mega = True
                     types = self._lookup_types(final_species)
                     roster.append(Pokemon(final_species, types, is_mega))
+
+                if not any(mon.is_mega for mon in roster):
+                    self._assume_mega_if_unrevealed(roster)
 
                 # The opponent is the other player slot for this match.
                 opponent_id = 'p2' if p_id == 'p1' else 'p1'
@@ -133,3 +143,31 @@ class ShowdownParser:
                 return self.dex_config[base].get('types', [])
 
         return []
+
+    def _assume_mega_if_unrevealed(self, roster: List[Pokemon]) -> None:
+        mega_candidates = [mon for mon in roster if self._can_mega_evolve(mon.species)]
+        if not mega_candidates:
+            return
+
+        if len(mega_candidates) == 1:
+            mega_candidates[0].is_mega = True
+            return
+
+        priority = {
+            'Garchomp': 0,
+            'Tyranitar': 1,
+        }
+        candidate = mega_candidates[0]
+        for mon in mega_candidates[1:]:
+            current_priority = priority.get(candidate.species, 2)
+            next_priority = priority.get(mon.species, 2)
+            if next_priority > current_priority:
+                candidate = mon
+        candidate.is_mega = True
+
+    def _can_mega_evolve(self, species: str) -> bool:
+        base = species.split('-', 1)[0]
+        for name in self.dex_config:
+            if name.startswith(f"{base}-Mega"):
+                return True
+        return False
