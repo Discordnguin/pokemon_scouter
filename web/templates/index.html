@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Scouter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Pokemon Scout Generator</h1>
+        
+        <form id="scoutForm">
+            <!-- Usernames Section -->
+            <div class="form-section">
+                <label for="usernames">Usernames (comma separated):</label>
+                <input type="text" id="usernames" name="usernames" placeholder="e.g., player1, player2, player3" required>
+            </div>
+
+            <!-- Tier Section -->
+            <div class="form-section">
+                <label for="tier">Tier:</label>
+                <input type="text" id="tier" name="tier" placeholder="e.g., gen8ou, gen7ou" required>
+            </div>
+
+            <!-- Tours Section -->
+            <div class="form-section">
+                <h2>Tours</h2>
+                <div id="toursContainer"></div>
+                <button type="button" id="addTourBtn" class="btn btn-secondary">+ Add Tour</button>
+            </div>
+
+            <!-- Submit Section -->
+            <div class="form-section">
+                <button type="submit" class="btn btn-primary">Generate Importable</button>
+            </div>
+        </form>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading" style="display: none;">
+            <p>Generating scouts...</p>
+        </div>
+
+        <!-- Output Section -->
+        <div id="outputSection" style="display: none;" class="output-section">
+            <h2>Scout Output</h2>
+            <pre id="output"></pre>
+            <div class="button-group">
+                <button id="copyBtn" class="btn btn-secondary">Copy to Clipboard</button>
+                <button id="downloadBtn" class="btn btn-secondary">Download as Text</button>
+            </div>
+        </div>
+
+        <!-- Error Section -->
+        <div id="errorSection" style="display: none;" class="error-section">
+            <h2>Error</h2>
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
