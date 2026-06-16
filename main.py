@@ -1,7 +1,7 @@
 import sys
 from config.gen7ou_dex import GEN7_OU_DEX
 from src.parser import ShowdownParser
-from src.sorter import TeamSorter, Gen7Strategy, Gen8Strategy
+from src.sorter import TeamSorter, Gen6Strategy, Gen7Strategy, Gen8Strategy
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -46,7 +46,13 @@ def main():
             scouts.extend(parser.parse_replay(replay_url, tour_name=tour_name))
 
     output_lines: list[str] = []
-    strategy = Gen7Strategy() if tier.lower() == 'gen7ou' else Gen8Strategy()
+    tier_lower = tier.lower()
+    if tier_lower == 'gen6ou':
+        strategy = Gen6Strategy()
+    elif tier_lower == 'gen7ou':
+        strategy = Gen7Strategy()
+    else:
+        strategy = Gen8Strategy()
 
     for match in scouts:
         header = f"=== [{tier}] {match.tour} vs {match.opponent} ({match.result})"
