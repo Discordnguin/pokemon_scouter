@@ -132,8 +132,13 @@ class ShowdownParser:
         if species in self.dex_config:
             return self.dex_config[species].get('types', [])
 
-        if '*' in species:
-            base = species.split('*')[0].rstrip('-')
+        if species.endswith('-*'):
+            base = species[:-2]
+            # Treat all Urshifu-* entries as Urshifu-Rapid-Strike for type resolution.
+            if base == 'Urshifu':
+                rapid_strike = 'Urshifu-Rapid-Strike'
+                if rapid_strike in self.dex_config:
+                    return self.dex_config[rapid_strike].get('types', [])
             if base in self.dex_config:
                 return self.dex_config[base].get('types', [])
 
