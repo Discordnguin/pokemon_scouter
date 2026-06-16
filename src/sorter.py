@@ -8,8 +8,8 @@ SlotCondition = Callable[[Pokemon], bool]
 # --- Constants & Type Effectiveness Dictionaries ---
 
 GROUND_EFFECTIVENESS = {
-    'Normal': 1, 'Fire': 2, 'Water': 1, 'Electric': 0, 'Grass': 0.5,
-    'Ice': 1, 'Fighting': 1, 'Poison': 1, 'Ground': 1, 'Flying': 0,
+    'Normal': 1, 'Fire': 2, 'Water': 1, 'Electric': 2, 'Grass': 0.5,
+    'Ice': 1, 'Fighting': 1, 'Poison': 2, 'Ground': 1, 'Flying': 0,
     'Psychic': 1, 'Bug': 0.5, 'Rock': 2, 'Ghost': 1, 'Dragon': 1,
     'Dark': 1, 'Steel': 2, 'Fairy': 1,
 }
@@ -25,7 +25,7 @@ WATER_EFFECTIVENESS = {
     'Normal': 1, 'Fire': 2, 'Water': 0.5, 'Electric': 1, 'Grass': 0.5,
     'Ice': 1, 'Fighting': 1, 'Poison': 1, 'Ground': 2, 'Flying': 1,
     'Psychic': 1, 'Bug': 1, 'Rock': 2, 'Ghost': 1, 'Dragon': 0.5,
-    'Dark': 1, 'Steel': 0.5, 'Fairy': 1,
+    'Dark': 1, 'Steel': 1, 'Fairy': 1,
 }
 
 STEEL_PRIORITY = [
