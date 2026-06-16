@@ -20,6 +20,8 @@ class ShowdownParser:
         # Map p1/p2 -> base species -> variant name (e.g. Charizard -> Charizard-Mega-Y)
         megas_variant_map: Dict[str, Dict[str, str]] = {'p1': {}, 'p2': {}}
         z_move_users: Dict[str, List[str]] = {'p1': [], 'p2': []}
+        # Map nicknames seen in switches to species so we can normalize -zpower nicknames
+        nickname_map: Dict[str, Dict[str, str]] = {'p1': {}, 'p2': {}}
         win_player: Optional[str] = None
         
         # Track Greninja behavior: {p_id: {'used_move': bool, 'showed_protean': bool}}
@@ -46,6 +48,14 @@ class ShowdownParser:
                 if p_id in teams_raw:
                     teams_raw[p_id].append(species)
 
+            # Example: "|switch|p1a: YOUR TEARS|Tyranitar, M" -> capture nickname->species mapping
+            elif parts[1] in ('switch', 'drag') and len(parts) > 3:
+                slot = parts[2].split(':', 1)[0]
+                slot_player = 'p1' if slot.startswith('p1') else 'p2'
+                nickname = parts[2].split(':', 1)[1].strip()
+                species = parts[3].split(',')[0].strip()
+                nickname_map[slot_player][nickname] = species
+
             # Example: "|-mega|p1a: Aerodactyl|Aerodactyl|Aerodactylite"
             # We normalize p1a/p1b/etc. back to p1/p2 so we can mark the species
             elif parts[1] == '-mega' and len(parts) > 3:
@@ -65,15 +75,17 @@ class ShowdownParser:
                 # |detailschange|p2a: Charizard|Charizard-Mega-Y, M
                 slot = parts[2].split(':', 1)[0]
                 slot_player = 'p1' if slot.startswith('p1') else 'p2'
-                base_species = parts[2].split(':', 1)[1].strip() if ':' in parts[2] else ''
                 variant = parts[3].split(',')[0].strip()
-                
+                base_species = None
+                if variant and 'Mega' in variant:
+                    base_species = variant.split('-', 1)[0]
+
                 # Track if Greninja showed a type change (Protean activation)
-                if base_species and base_species.startswith('Greninja'):
+                if variant and variant.startswith('Greninja'):
                     if greninja_behavior[slot_player]['used_move']:
                         greninja_behavior[slot_player]['showed_protean'] = True
-                
-                if base_species and variant and variant != base_species:
+
+                if base_species:
                     existing_variant = megas_variant_map.setdefault(slot_player, {}).get(base_species)
                     if not existing_variant or existing_variant == base_species:
                         megas_variant_map[slot_player][base_species] = variant
@@ -94,9 +106,18 @@ class ShowdownParser:
                     p_id = 'p1'
                 elif p_id.startswith('p2'):
                     p_id = 'p2'
-                species = parts[2].split(':', 1)[1].strip() if ':' in parts[2] else ''
-                if p_id in z_move_users and species:
-                    z_move_users[p_id].append(species)
+                raw = parts[2].split(':', 1)[1].strip() if ':' in parts[2] else ''
+                # Normalize nicknames to species when possible
+                resolved = raw
+                if raw in nickname_map.get(p_id, {}):
+                    resolved = nickname_map[p_id][raw]
+                # If resolved looks like a nickname with parentheses (e.g. "Nick (Species)"), try to extract
+                if '(' in resolved and ')' in resolved:
+                    inside = resolved[resolved.rfind('(')+1:resolved.rfind(')')].strip()
+                    if inside:
+                        resolved = inside
+                if p_id in z_move_users and resolved:
+                    z_move_users[p_id].append(resolved)
 
             elif parts[1] == 'win' and len(parts) > 2:
                 win_player = parts[2].lower()
@@ -121,6 +142,14 @@ class ShowdownParser:
                     if not variant_name and '-' in species:
                         base_species = species.split('-', 1)[0]
                         variant_name = megas_variant_map.get(p_id, {}).get(base_species)
+                    # Fallback: if we know a variant for this base in the other slot, use it
+                    if not variant_name:
+                        base = species.split('-', 1)[0]
+                        for slot_map in megas_variant_map.values():
+                            maybe = slot_map.get(base)
+                            if maybe and maybe != base:
+                                variant_name = maybe
+                                break
                     final_species = variant_name if variant_name else species
                     if not is_mega and 'Mega' in final_species:
                         is_mega = True
