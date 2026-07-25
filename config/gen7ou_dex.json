@@ -304,16 +304,6 @@
       "Psychic"
     ]
   },
-  "Raichu-Mega-X": {
-    "types": [
-      "Electric"
-    ]
-  },
-  "Raichu-Mega-Y": {
-    "types": [
-      "Electric"
-    ]
-  },
   "Sandshrew": {
     "types": [
       "Ground"
@@ -376,12 +366,6 @@
   "Clefable": {
     "types": [
       "Fairy"
-    ]
-  },
-  "Clefable-Mega": {
-    "types": [
-      "Fairy",
-      "Flying"
     ]
   },
   "Vulpix": {
@@ -634,12 +618,6 @@
     ]
   },
   "Victreebel": {
-    "types": [
-      "Grass",
-      "Poison"
-    ]
-  },
-  "Victreebel-Mega": {
     "types": [
       "Grass",
       "Poison"
@@ -1039,12 +1017,6 @@
       "Psychic"
     ]
   },
-  "Starmie-Mega": {
-    "types": [
-      "Water",
-      "Psychic"
-    ]
-  },
   "Mr. Mime": {
     "types": [
       "Psychic",
@@ -1279,12 +1251,6 @@
       "Flying"
     ]
   },
-  "Dragonite-Mega": {
-    "types": [
-      "Dragon",
-      "Flying"
-    ]
-  },
   "Mewtwo": {
     "types": [
       "Psychic"
@@ -1321,12 +1287,6 @@
       "Grass"
     ]
   },
-  "Meganium-Mega": {
-    "types": [
-      "Grass",
-      "Fairy"
-    ]
-  },
   "Cyndaquil": {
     "types": [
       "Fire"
@@ -1361,12 +1321,6 @@
   "Feraligatr": {
     "types": [
       "Water"
-    ]
-  },
-  "Feraligatr-Mega": {
-    "types": [
-      "Water",
-      "Dragon"
     ]
   },
   "Sentret": {
@@ -1796,12 +1750,6 @@
     ]
   },
   "Skarmory": {
-    "types": [
-      "Steel",
-      "Flying"
-    ]
-  },
-  "Skarmory-Mega": {
     "types": [
       "Steel",
       "Flying"
@@ -2640,12 +2588,6 @@
       "Psychic"
     ]
   },
-  "Chimecho-Mega": {
-    "types": [
-      "Psychic",
-      "Steel"
-    ]
-  },
   "Absol": {
     "types": [
       "Dark"
@@ -2654,12 +2596,6 @@
   "Absol-Mega": {
     "types": [
       "Dark"
-    ]
-  },
-  "Absol-Mega-Z": {
-    "types": [
-      "Dark",
-      "Ghost"
     ]
   },
   "Wynaut": {
@@ -2934,12 +2870,6 @@
   "Staraptor": {
     "types": [
       "Normal",
-      "Flying"
-    ]
-  },
-  "Staraptor-Mega": {
-    "types": [
-      "Fighting",
       "Flying"
     ]
   },
@@ -3242,11 +3172,6 @@
       "Ground"
     ]
   },
-  "Garchomp-Mega-Z": {
-    "types": [
-      "Dragon"
-    ]
-  },
   "Munchlax": {
     "types": [
       "Normal"
@@ -3454,12 +3379,6 @@
       "Ghost"
     ]
   },
-  "Froslass-Mega": {
-    "types": [
-      "Ice",
-      "Ghost"
-    ]
-  },
   "Rotom": {
     "types": [
       "Electric",
@@ -3536,12 +3455,6 @@
     ]
   },
   "Heatran": {
-    "types": [
-      "Fire",
-      "Steel"
-    ]
-  },
-  "Heatran-Mega": {
     "types": [
       "Fire",
       "Steel"
@@ -3728,12 +3641,6 @@
       "Fighting"
     ]
   },
-  "Emboar-Mega": {
-    "types": [
-      "Fire",
-      "Fighting"
-    ]
-  },
   "Oshawott": {
     "types": [
       "Water"
@@ -3896,12 +3803,6 @@
       "Steel"
     ]
   },
-  "Excadrill-Mega": {
-    "types": [
-      "Ground",
-      "Steel"
-    ]
-  },
   "Audino": {
     "types": [
       "Normal"
@@ -3986,12 +3887,6 @@
     ]
   },
   "Scolipede": {
-    "types": [
-      "Bug",
-      "Poison"
-    ]
-  },
-  "Scolipede-Mega": {
     "types": [
       "Bug",
       "Poison"
@@ -4114,12 +4009,6 @@
     ]
   },
   "Scrafty": {
-    "types": [
-      "Dark",
-      "Fighting"
-    ]
-  },
-  "Scrafty-Mega": {
     "types": [
       "Dark",
       "Fighting"
@@ -4396,11 +4285,6 @@
       "Electric"
     ]
   },
-  "Eelektross-Mega": {
-    "types": [
-      "Electric"
-    ]
-  },
   "Elgyem": {
     "types": [
       "Psychic"
@@ -4424,12 +4308,6 @@
     ]
   },
   "Chandelure": {
-    "types": [
-      "Ghost",
-      "Fire"
-    ]
-  },
-  "Chandelure-Mega": {
     "types": [
       "Ghost",
       "Fire"
@@ -4509,12 +4387,6 @@
     ]
   },
   "Golurk": {
-    "types": [
-      "Ground",
-      "Ghost"
-    ]
-  },
-  "Golurk-Mega": {
     "types": [
       "Ground",
       "Ghost"
@@ -4760,12 +4632,6 @@
       "Fighting"
     ]
   },
-  "Chesnaught-Mega": {
-    "types": [
-      "Grass",
-      "Fighting"
-    ]
-  },
   "Fennekin": {
     "types": [
       "Fire"
@@ -4777,12 +4643,6 @@
     ]
   },
   "Delphox": {
-    "types": [
-      "Fire",
-      "Psychic"
-    ]
-  },
-  "Delphox-Mega": {
     "types": [
       "Fire",
       "Psychic"
@@ -4811,12 +4671,6 @@
     ]
   },
   "Greninja-Ash": {
-    "types": [
-      "Water",
-      "Dark"
-    ]
-  },
-  "Greninja-Mega": {
     "types": [
       "Water",
       "Dark"
@@ -4942,12 +4796,6 @@
       "Normal"
     ]
   },
-  "Pyroar-Mega": {
-    "types": [
-      "Fire",
-      "Normal"
-    ]
-  },
   "Flabe\\u0301be\\u0301": {
     "types": [
       "Fairy"
@@ -4959,11 +4807,6 @@
     ]
   },
   "Floette-Eternal": {
-    "types": [
-      "Fairy"
-    ]
-  },
-  "Floette-Mega": {
     "types": [
       "Fairy"
     ]
@@ -5010,16 +4853,6 @@
     ]
   },
   "Meowstic-F": {
-    "types": [
-      "Psychic"
-    ]
-  },
-  "Meowstic-M-Mega": {
-    "types": [
-      "Psychic"
-    ]
-  },
-  "Meowstic-F-Mega": {
     "types": [
       "Psychic"
     ]
@@ -5080,12 +4913,6 @@
       "Psychic"
     ]
   },
-  "Malamar-Mega": {
-    "types": [
-      "Dark",
-      "Psychic"
-    ]
-  },
   "Binacle": {
     "types": [
       "Rock",
@@ -5098,12 +4925,6 @@
       "Water"
     ]
   },
-  "Barbaracle-Mega": {
-    "types": [
-      "Rock",
-      "Fighting"
-    ]
-  },
   "Skrelp": {
     "types": [
       "Poison",
@@ -5111,12 +4932,6 @@
     ]
   },
   "Dragalge": {
-    "types": [
-      "Poison",
-      "Dragon"
-    ]
-  },
-  "Dragalge-Mega": {
     "types": [
       "Poison",
       "Dragon"
@@ -5174,12 +4989,6 @@
     ]
   },
   "Hawlucha": {
-    "types": [
-      "Fighting",
-      "Flying"
-    ]
-  },
-  "Hawlucha-Mega": {
     "types": [
       "Fighting",
       "Flying"
@@ -5511,12 +5320,6 @@
       "Ice"
     ]
   },
-  "Crabominable-Mega": {
-    "types": [
-      "Fighting",
-      "Ice"
-    ]
-  },
   "Oricorio": {
     "types": [
       "Fire",
@@ -5734,12 +5537,6 @@
       "Water"
     ]
   },
-  "Golisopod-Mega": {
-    "types": [
-      "Bug",
-      "Steel"
-    ]
-  },
   "Sandygast": {
     "types": [
       "Ghost",
@@ -5941,12 +5738,6 @@
       "Dragon"
     ]
   },
-  "Drampa-Mega": {
-    "types": [
-      "Normal",
-      "Dragon"
-    ]
-  },
   "Dhelmise": {
     "types": [
       "Ghost",
@@ -6098,18 +5889,6 @@
       "Fairy"
     ]
   },
-  "Magearna-Mega": {
-    "types": [
-      "Steel",
-      "Fairy"
-    ]
-  },
-  "Magearna-Original-Mega": {
-    "types": [
-      "Steel",
-      "Fairy"
-    ]
-  },
   "Marshadow": {
     "types": [
       "Fighting",
@@ -6140,11 +5919,6 @@
     ]
   },
   "Zeraora": {
-    "types": [
-      "Electric"
-    ]
-  },
-  "Zeraora-Mega": {
     "types": [
       "Electric"
     ]
@@ -6626,11 +6400,6 @@
     ]
   },
   "Falinks": {
-    "types": [
-      "Fighting"
-    ]
-  },
-  "Falinks-Mega": {
     "types": [
       "Fighting"
     ]
@@ -7217,12 +6986,6 @@
       "Fire"
     ]
   },
-  "Scovillain-Mega": {
-    "types": [
-      "Grass",
-      "Fire"
-    ]
-  },
   "Rellor": {
     "types": [
       "Bug"
@@ -7328,12 +7091,6 @@
       "Poison"
     ]
   },
-  "Glimmora-Mega": {
-    "types": [
-      "Rock",
-      "Poison"
-    ]
-  },
   "Greavard": {
     "types": [
       "Ghost"
@@ -7384,24 +7141,6 @@
     ]
   },
   "Tatsugiri-Stretchy": {
-    "types": [
-      "Dragon",
-      "Water"
-    ]
-  },
-  "Tatsugiri-Curly-Mega": {
-    "types": [
-      "Dragon",
-      "Water"
-    ]
-  },
-  "Tatsugiri-Droopy-Mega": {
-    "types": [
-      "Dragon",
-      "Water"
-    ]
-  },
-  "Tatsugiri-Stretchy-Mega": {
     "types": [
       "Dragon",
       "Water"
@@ -7526,12 +7265,6 @@
     ]
   },
   "Baxcalibur": {
-    "types": [
-      "Dragon",
-      "Ice"
-    ]
-  },
-  "Baxcalibur-Mega": {
     "types": [
       "Dragon",
       "Ice"
@@ -7995,12 +7728,6 @@
     ]
   },
   "Crucibelle": {
-    "types": [
-      "Rock",
-      "Poison"
-    ]
-  },
-  "Crucibelle-Mega": {
     "types": [
       "Rock",
       "Poison"
