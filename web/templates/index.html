@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokemon Scouter</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='pokemon-icons.js') }}"></script>
 </head>
 <body>
     <div class="container">
@@ -43,7 +44,10 @@
 
         <!-- Output Section -->
         <div id="outputSection" style="display: none;" class="output-section">
-            <h2>Scout Output</h2>
+            <h2>Visual Scout</h2>
+            <div id="visualOutput" class="team-container"></div>
+            
+            <h2 style="margin-top: 30px;">Raw Importable</h2>
             <pre id="output"></pre>
             <div class="button-group">
                 <button id="copyBtn" class="btn btn-secondary">Copy to Clipboard</button>

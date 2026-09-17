@@ -4,12 +4,21 @@ from typing import Dict, List, Optional
 from src.models import Pokemon, Team, MatchScout
 
 class ShowdownParser:
+    @staticmethod
+    def _normalize_username(username: str) -> str:
+        """Normalize username by removing non-alphanumeric characters and lowercasing."""
+        return ''.join(c for c in username.lower() if c.isalnum())
+    
     def __init__(self, target_usernames: List[str], dex_config: Dict[str, Dict[str, List[str]]]):
-        self.targets = [username.lower() for username in target_usernames]
+        self.targets = [self._normalize_username(username) for username in target_usernames]
         self.dex_config = dex_config
 
     def parse_replay(self, replay_url: str, tour_name: str) -> List[MatchScout]:
-        log_url = replay_url if replay_url.endswith('.log') else f"{replay_url}.log"
+        # Strip query parameters (e.g., ?p2) from URL before adding .log
+        # Example: "https://replay.pokemonshowdown.com/smogtours-gen7ou-958143?p2" 
+        #       -> "https://replay.pokemonshowdown.com/smogtours-gen7ou-958143"
+        clean_url = replay_url.split('?')[0]
+        log_url = clean_url if clean_url.endswith('.log') else f"{clean_url}.log"
         response = requests.get(log_url)
         response.raise_for_status()
         log_lines = response.text.splitlines()
@@ -34,7 +43,7 @@ class ShowdownParser:
 
             # Example: "|player|p1|Yelodash|..." -> capture mapping p1 -> 'yelodash'
             if parts[1] == 'player' and len(parts) > 3:
-                p_id, p_name = parts[2], parts[3].lower()
+                p_id, p_name = parts[2], self._normalize_username(parts[3])
                 # Avoid overwriting a previously parsed non-empty username with
                 # later blank |player|...| lines that appear in some logs.
                 if p_name.strip():

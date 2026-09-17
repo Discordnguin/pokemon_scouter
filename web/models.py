@@ -19,7 +19,8 @@ class ScoutRequest:
         if not usernames_str:
             raise ValueError("Usernames are required")
         
-        usernames = [u.strip().lower() for u in usernames_str.replace(',', ' ').split() if u.strip()]
+        # Split only on commas, not spaces (so "AFRO MOOD" stays as one username)
+        usernames = [u.strip() for u in usernames_str.split(',') if u.strip()]
         
         tier = data.get('tier', '').strip()
         if not tier:

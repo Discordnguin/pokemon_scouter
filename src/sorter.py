@@ -55,7 +55,7 @@ def has_levitate(mon: Pokemon) -> bool:
 def is_ground_resist(mon: Pokemon) -> bool:
     return has_levitate(mon) or get_type_effectiveness(mon, GROUND_EFFECTIVENESS) < 1
 
-def best_ground_resist_candidate(unassigned: List[Pokemon]) -> Optional[Pokemon]:
+def best_ground_resist_candidate(unassigned: List[Pokemon], debug: bool = False) -> Optional[Pokemon]:
     if not unassigned:
         return None
 
@@ -77,6 +77,13 @@ def best_ground_resist_candidate(unassigned: List[Pokemon]) -> Optional[Pokemon]
         levitate_rank = 0 if has_levitate(mon) else 1
         return (category, levitate_rank, -offense, defense)
 
+    if debug:
+        ranked = [(mon, rank(mon)) for mon in unassigned]
+        ranked_sorted = sorted(ranked, key=lambda x: x[1])
+        print("\n[DEBUG] Ground resist candidates:")
+        for mon, rank_tuple in ranked_sorted:
+            print(f"  {mon.species}: {mon.types} -> rank={rank_tuple}")
+    
     return min(unassigned, key=rank)
 
 def is_ground_immune(mon: Pokemon) -> bool:
@@ -207,7 +214,7 @@ class Gen7Strategy(SortingStrategy):
             return False
             
         # 3. Otherwise, pick the best one
-        best = best_ground_resist_candidate(unassigned)
+        best = best_ground_resist_candidate(unassigned, debug=False)
         return best is not None and mon is best
 
     def _pick_other_steel(self, unassigned: List[Pokemon], mon: Pokemon) -> bool:

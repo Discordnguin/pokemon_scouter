@@ -241,3 +241,76 @@ textarea:focus {
         font-size: 13px;
     }
 }
+
+.picon {
+    display: inline-block;
+    width: 40px;
+    height: 30px;
+    /* Use the official sheet URL */
+    background: transparent url('https://play.pokemonshowdown.com/sprites/pokemonicons-sheet.png?v22') no-repeat;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.picon-img {
+    display: inline-block;
+    width: 40px;
+    height: 30px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+}
+
+/* This allows you to hide the text label while keeping it accessible for screen readers/hover */
+.picon span {
+    font-size: 0px;
+}
+
+/* Team display styles */
+.team-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.team-box {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    background: #fafafa;
+    transition: border-color 0.3s;
+}
+
+.team-box:hover {
+    border-color: #667eea;
+    background: #f5f5f5;
+}
+
+.team-header {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.team-header strong {
+    color: #333;
+    font-weight: 600;
+}
+
+.team-sprites {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #f0f0f0;
+}
+
+.team-sprites .picon {
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+.team-sprites .picon:hover {
+    transform: scale(1.1);
+}

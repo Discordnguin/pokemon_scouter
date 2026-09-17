@@ -80,12 +80,54 @@ document.getElementById('scoutForm').addEventListener('submit', async function(e
         document.getElementById('loading').style.display = 'none';
         
         if (response.ok && data.status === 'success') {
-            // Show output
-            document.getElementById('output').textContent = data.output;
+            const resultData = data.output;
+
+            // 1. Build the Visual UI
+            const visualContainer = document.getElementById('visualOutput');
+            visualContainer.innerHTML = ''; // Clear previous scouts
+            
+            resultData.teams.forEach(team => {
+                const teamBox = document.createElement('div');
+                teamBox.className = 'team-box';
+                
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'team-header';
+                headerDiv.innerHTML = team.header.replace(/\]\s(.*?)\s\(/, '] <strong>$1</strong> (');
+                
+                const spritesDiv = document.createElement('div');
+                spritesDiv.className = 'team-sprites';
+                
+                team.mons.forEach(mon => {
+                    // Get artwork sprite URL
+                    const spriteUrl = getIconStyle(mon);
+                    
+                    const img = document.createElement('img');
+                    img.className = 'picon-img';
+                    img.src = spriteUrl;
+                    img.alt = mon;
+                    img.title = mon;
+                    img.style.width = '80px';
+                    img.style.height = '80px';
+                    img.style.imageRendering = 'pixelated';
+                    
+                    // Fallback if image fails to load
+                    img.onerror = function() {
+                        this.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect fill="%23ddd" width="80" height="80"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" font-size="10" fill="%23999" font-weight="bold">?</text></svg>';
+                    };
+                    
+                    spritesDiv.appendChild(img);
+                });
+                
+                teamBox.appendChild(headerDiv);
+                teamBox.appendChild(spritesDiv);
+                visualContainer.appendChild(teamBox);
+            });
+
+            // 2. Insert the Raw Text Importable
+            document.getElementById('output').textContent = resultData.raw_text;
             document.getElementById('outputSection').style.display = 'block';
             
-            // Store output for download
-            window.lastOutput = data.output;
+            window.lastOutput = resultData.raw_text;
         } else {
             throw new Error(data.message || 'Unknown error');
         }
@@ -127,3 +169,67 @@ document.getElementById('downloadBtn').addEventListener('click', function() {
 
 // Initialize with one tour field
 addTour();
+
+// Test function to display sample teams (for debugging sprite rendering)
+function testSpriteRendering() {
+    const testData = {
+        status: 'success',
+        output: {
+            raw_text: 'Scizor-Mega (Scizor) (Scizor-Mega) @ Choice Band\nAbility: Technician\nEVs: 248 HP / 8 Atk / 252 SpD\nAdamant Nature\n- Bullet Punch\n- Superpower\n- X-Scissor\n- Sword Dance',
+            teams: [
+                {
+                    header: '[1] testuser (gen7ou)',
+                    mons: ['Scizor-Mega', 'Heatran', 'Kyurem-Black', 'Tornadus-Therian', 'Tapu Koko', 'Gastrodon-East']
+                },
+                {
+                    header: '[2] testuser (gen7ou)',
+                    mons: ['Medicham-Mega', 'Landorus-Therian', 'Clefable', 'Greninja', 'Jirachi', 'Rotom-Wash']
+                }
+            ]
+        }
+    };
+
+    // Display output
+    const visualContainer = document.getElementById('visualOutput');
+    visualContainer.innerHTML = '';
+    
+    testData.output.teams.forEach(team => {
+        const teamBox = document.createElement('div');
+        teamBox.className = 'team-box';
+        
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'team-header';
+        headerDiv.textContent = team.header;
+        
+        const spritesDiv = document.createElement('div');
+        spritesDiv.className = 'team-sprites';
+        
+        team.mons.forEach(mon => {
+            // Use Showdown's artwork sprite URL
+            const spriteUrl = getIconStyle(mon);
+            
+            const img = document.createElement('img');
+            img.className = 'picon-img';
+            img.src = spriteUrl;
+            img.alt = mon;
+            img.title = mon;
+            img.style.width = '80px';
+            img.style.height = '80px';
+            img.style.imageRendering = 'pixelated';
+            
+            // Fallback if image fails to load
+            img.onerror = function() {
+                this.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect fill="%23ddd" width="80" height="80"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" font-size="10" fill="%23999" font-weight="bold">?</text></svg>';
+            };
+            
+            spritesDiv.appendChild(img);
+        });
+        
+        teamBox.appendChild(headerDiv);
+        teamBox.appendChild(spritesDiv);
+        visualContainer.appendChild(teamBox);
+    });
+
+    document.getElementById('output').textContent = testData.output.raw_text;
+    document.getElementById('outputSection').style.display = 'block';
+}
